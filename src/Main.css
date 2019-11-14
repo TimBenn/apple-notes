@@ -1,0 +1,15 @@
+body {
+    color: #454545;
+}
+
+main {
+    display: flex;
+    height: calc(100vh - 70px);
+    background: #FCFCFA;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    margin-top: 0;
+    margin-bottom: 0.2rem;
+    color: #454545;
+}
