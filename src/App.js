@@ -23,7 +23,7 @@ export default class App extends Component {
     }
 
     addNote(title)  {
-        var newNote = {
+        var note = {
             id: uuid(),
             title: title,
             body: '',
@@ -31,44 +31,52 @@ export default class App extends Component {
             isSelected: true
         };
 
-        var updatedNotes = [newNote, ...this.state.notes.map(note => {
-            note.isSelected = false;
-            return note;
-        })];
+        var notes = this.state.notes;
+        notes.unshift(note);
+
+        this.unselectAllNotes();
 
         this.setState({
-            notes: updatedNotes,
-            filteredNotes: updatedNotes,
-            note: newNote
+            note: note,
+            notes: notes,
+            filtered: notes
         })
         
         setTimeout(() => {
-            this.focusTextInput();
+            this.focusNoteTextArea();
         }, 200);
     };
 
-    focusTextInput() {
-        this.noteTextArea.current.focus();
-    };
-
-    setNote(id) {
-        var updatedNotes = this.state.notes.map(note => {
-            note.isSelected = false;
-            return note;
-        });
+    setCurrentNote(id) {
+        this.unselectAllNotes();
 
         var note = this.state.notes.find(note => note.id === id);
         note.isSelected = true;
 
         this.setState({
-            notes: updatedNotes,
             note: note
-        })
+        });
 
         setTimeout(() => {
-            this.focusTextInput();
+            this.focusNoteTextArea();
         }, 200);
     };
+
+    focusNoteTextArea() {
+        this.noteTextArea.current.focus();
+    };
+
+    unselectAllNotes() {
+        var notes = this.state.notes.map(note => {
+            note.isSelected = false;
+            return note;
+        });
+
+        this.setState({
+            notes: notes,
+            filteredNotes: notes,
+        });
+    }
 
     handleSearchChange(value) {
         this.setState({
@@ -79,9 +87,9 @@ export default class App extends Component {
     };
 
     filterNotes(value)  {
-        var updatedList = this.state.notes;
+        var notes = this.state.notes;
 
-        updatedList = updatedList.filter(note => {
+        var filteredNotes = notes.filter(note => {
             var isSearchInTitle = note.title.toUpperCase().search(value.toUpperCase()) !== -1;
             var isSearchInBody = note.body.toUpperCase().search(value.toUpperCase()) !== -1;
 
@@ -89,7 +97,7 @@ export default class App extends Component {
         })
 
         this.setState({
-            filteredNotes: updatedList
+            filteredNotes: filteredNotes
         })
     };
 
@@ -107,16 +115,16 @@ export default class App extends Component {
     };
 
     handleNoteBodyChange(e) {
-        var updateNote = {
+        var note = {
             ...this.state.note,
             body: e.target.value
         }
 
         this.setState({
-            note: updateNote
+            note: note
         });
 
-        this.updateNotes();  
+        this.updateNote();  
     };
 
     removeNote(note) {
@@ -125,11 +133,13 @@ export default class App extends Component {
         var noteToBeDeleted = this.state.notes.find(stateNote => stateNote.id === note.id);
         notes.splice(notes.indexOf(noteToBeDeleted), 1);
 
-        this.updateNotes(notes);
+        this.setState({
+            notes: notes
+        })
     };
 
-    updateNotes = debounce(() => {
-        var updatedNotes = this.state.notes.map(note => {
+    updateNote = debounce(() => {
+        var notes = this.state.notes.map(note => {
             if (this.state.note.id === note.id) {
                 return this.state.note;
             } else {
@@ -138,8 +148,8 @@ export default class App extends Component {
         });
 
         this.setState({
-            notes: updatedNotes,
-            filteredNotes: updatedNotes
+            notes: notes,
+            filteredNotes: notes
         });
     }, 500);
 
@@ -147,6 +157,11 @@ export default class App extends Component {
         return (
             <div className="App">
                 <div className={ styles.header }>
+                    <div className={ styles.dots }>
+                        <span className={ `${ styles.dot } ${ styles.red }` }></span>
+                        <span className={ `${ styles.dot } ${ styles.yellow }` }></span>
+                        <span className={ `${ styles.dot } ${ styles.green }` }></span>
+                    </div>
                     <button><FontAwesomeIcon icon={ faTrash } onClick={ () => this.removeNote(this.state.note) } /></button>
                     <input
                         value={ this.state.search }
@@ -158,7 +173,7 @@ export default class App extends Component {
                     <div className={ styles['notes-container'] }>
                         { this.state.filteredNotes.length > 0 ? 
                             this.state.filteredNotes.map(note => {
-                                return <div key={ note.id } className={ `${ note.isSelected ? [styles['active-note'], styles.note].join(' ') : styles.note }` } onClick={ () => this.setNote(note.id) }>
+                                return <div key={ note.id } className={ `${ note.isSelected ? [styles['active-note'], styles.note].join(' ') : styles.note }` } onClick={ () => this.setCurrentNote(note.id) }>
                                     <h3 className={ styles.title }>{ note.title }</h3>
                                     <div className={ styles['date-message-container'] }>
                                         <span className={ styles.date }>{ moment(note.createdAt).format('h:mm A') }</span>
