@@ -17,14 +17,16 @@ export default function App() {
     
     const handleSearchChange = (e) => {
         setSearch(e.target.value);
+    };
 
+    useEffect(() => {
         setFilteredNotes(notes.filter(note => {
             var isSearchInTitle = note.title.toUpperCase().search(search.toUpperCase()) !== -1;
             var isSearchInBody = note.body.toUpperCase().search(search.toUpperCase()) !== -1;
 
             return isSearchInTitle || isSearchInBody;
         }));
-    };
+    }, [notes, search])
 
     const handleEnterPress = (e) => {
         if (e.key === 'Enter' && e.target.value !== '' && !filteredNotes.length > 0) {
@@ -131,8 +133,8 @@ export default function App() {
                             )
                         }) : 
                         <div className={ styles['no-notes'] }>
-                            <h3>You don't have any notes...yet!</h3>
-                        </div> 
+                            <h3>No notes</h3>
+                        </div>
                     }
                 </div>
                 <div className={ styles['note-container'] }>
